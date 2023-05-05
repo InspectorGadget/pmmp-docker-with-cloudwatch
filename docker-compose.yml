@@ -1,0 +1,29 @@
+version: '3'
+services:
+  server:
+    image: pmmp/pocketmine-mp
+    platform: linux/x86_64 # PMMP Docker Image does not support ARM. So, let's force x86_64.
+    container_name: game
+    volumes:
+      - data:/data/
+    networks:
+      - internal
+  log:
+    hostname: server01.logs.raeveen.me
+    container_name: logger
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - AWS_REGION=ap-southeast-1
+        - CW_LOG_GROUP_NAME=pmmp-server-log
+    volumes:
+      - .aws/aws.conf:/var/awslogs/etc/aws.conf # Need to inject the IAM user somehow. On ECS, AWS has this feature built-in.
+      - data:/data/
+    networks:
+      - internal
+networks:
+  internal:
+    driver: bridge
+volumes:
+  data:
